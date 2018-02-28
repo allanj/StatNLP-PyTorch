@@ -96,7 +96,7 @@ class LocalNetworkParam:
 
         if should_cache:
             if self._cache == None:
-                self._cache = [None for i in range(0, self._num_networks)]
+                self._cache = [None for i in range(self._num_networks)]
 
             if self._cache[network.get_network_id()] == None:
                 self._cache[network.get_network_id()] = [None for i in range(network.count_nodes())]
