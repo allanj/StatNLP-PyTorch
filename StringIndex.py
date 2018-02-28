@@ -15,7 +15,7 @@ class StringIndex:
     def put(self, str):
         return self.get_or_put(str)
 
-    def get_id(self, str)
+    def get_id(self, str):
         return self.index[str]
 
     def lock(self):
@@ -41,6 +41,7 @@ class StringIndex:
 
     @staticmethod
     def merge(self, indexes):
+        pass
 
 
 pass

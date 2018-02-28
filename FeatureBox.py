@@ -8,13 +8,11 @@ class FeatureBox:
         '''
 
         self._fs = fs  ## list, not tensor yet
-
         self._version = -1
+        self._curr_score = 0
 
 
     def length(self):
-
-
         return len(self._fs)
 
 

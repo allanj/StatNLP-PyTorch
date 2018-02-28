@@ -23,6 +23,9 @@ class GlobalNetworkParam:
     def is_locked(self):
         return self.locked
 
+    def get_weight(self, f):
+        return self.weights[f]
+
     def to_feature_id(self, network, fname_id):
 
         if self.is_locked():
@@ -39,20 +42,20 @@ class GlobalNetworkParam:
                 return self.size
 
 
-def lock_it(self):
-    if self.is_locked():
-        return
-    weights_new = torch.nn.Parameter(self.size)
-    weights_new.fill_(0.0)  ## TODO: need to randomly initialize
-    self.weights = weights_new
-    self.version = 0
-    self._string_index.lock()
-    self.locked = True
-    eprint(self.size, " features")
+    def lock_it(self):
+        if self.is_locked():
+            return
+        weights_new = torch.nn.Parameter(self.size)
+        weights_new.fill_(0.0)  ## TODO: need to randomly initialize
+        self.weights = weights_new
+        self.version = 0
+        self._string_index.lock()
+        self.locked = True
+        eprint(self.size, " features")
 
 
-def size(self):
-    return self.size
+    def size(self):
+        return self.size
 
 
 

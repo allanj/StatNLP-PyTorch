@@ -17,6 +17,7 @@ class LocalNetworkParam:
         self._cache = None
         self._cache_enable = True
         self._fs = None
+        self.fb_map = None
 
         if not NetworkConfig.CACHE_FEATURES_DURING_TRAINING:
             self.disable_cache()
@@ -44,6 +45,12 @@ class LocalNetworkParam:
 
     def get_obj(self):
         return self.obj
+
+
+    def get_weight(self, feature_id):
+        if self.is_global_mode():
+            return self.fm.get_param_g.get_weight
+
 
 
     def size(self):
