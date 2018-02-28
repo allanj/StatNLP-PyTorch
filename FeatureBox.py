@@ -23,7 +23,8 @@ class FeatureBox:
     def get_pos(self, pos):
         return self._fs[pos]
 
-    def get_feature_box(self, fs, param):
+    @staticmethod
+    def get_feature_box(fs, param):
         fb = FeatureBox(fs)
 
         if not NetworkConfig.AVOID_DUPLICATE_FEATURES:
