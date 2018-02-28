@@ -1,7 +1,7 @@
 import numpy as np
 
 class NetworkConfig:
-    DEFAULT_CAPACITY_NETWORK = np.asarray([1000,1000])
+    DEFAULT_CAPACITY_NETWORK = np.asarray([1000,1000, 1000, 1000, 1000])
 
 
 
