@@ -10,7 +10,6 @@ class Instance:
         self.labeled_instance = None
         self.unlabeled_instance = None
 
-
     def set_instance_id(self, inst_id):
         self.instanceId = inst_id
 
