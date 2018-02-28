@@ -3,11 +3,18 @@ import NetworkConfig
 from Utils import *
 import FeatureBox
 
+
+def negative_infinity():
+    return FeatureArray(total_score=-math.inf)
+
 class FeatureArray:
-    NEGATIVE_INFINITY = FeatureArray(total_score=-math.inf);
+    NEGATIVE_INFINITY = FeatureArray(total_score=-math.inf)
 
     def __init__(self, fs=None, fb=None, next_fa=None, total_score=None):
 
+        if FeatureArray.NEGATIVE_INFINITY is None:
+            # Create and remember instance
+            FeatureArray.NEGATIVE_INFINITY = FeatureArray.__impl()()
 
         if fs == None and fb == None and total_score == None:
             raise Exception("fs and fb can't be both None (when total score is none)")
@@ -21,6 +28,10 @@ class FeatureArray:
             self._total_score = total_score
         self._next = next_fa
         self._is_local = False
+
+        NEGATIVE_INFINITY = cls()
+
+
 
 
     def to_local(self, param):
@@ -146,3 +157,6 @@ class FeatureArray:
                 return self._next.equals(other._next)
 
         return False
+
+
+
