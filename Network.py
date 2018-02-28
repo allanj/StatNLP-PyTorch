@@ -1,10 +1,20 @@
 from abc import ABC, abstractmethod
+#import NetworIDMapper
+from NetworkIDMapper import *
+import torch
+import math
+import numpy as np
+import torch.autograd as autograd
+from Utils import *
 
 class Network:
 
-    def __init__(self, network_id, instance):
+    def __init__(self, network_id, instance, param):
         self.network_id = network_id
         self.inst = instance
+        self.param = param
+        self.maxSharedArray = None
+        self.maxPathsSharedArrays = None
 
     def get_network_id(self):
         return self.network_id
@@ -16,4 +26,192 @@ class Network:
     def get_instance(self):
         return self.inst
 
-    
+    def getInsideSharedArray(self):
+        if self.inside_shared_array == None or self.count_nodes() > len(self.inside_shared_array):
+            self.inside_shared_array = autograd.Variable(
+                torch.Tensor(self.count_nodes()).fill_(0.0))  ##np.zeros(self.count_nodes(), dtype=np.float)
+
+
+        return self.inside_shared_array
+
+    def inside(self):
+        self.inside_scores = autograd.Variable(torch.Tensor(self.count_nodes()).fill_(0.0))
+        for k in range(self.count_nodes()):
+            self.get_inside(k)
+        if math.isinf(self.get_insides()) and self.get_insides() > 0:
+            raise Exception("Error: network (ID=", self.network_id, ") has zero inside score")
+
+    def get_insides(self):
+        return self.inside_scores[self.count_nodes() - 1]
+
+    def get_inside(self, k):
+        if self.is_removed(k):
+            self.inside_scores[k] = -math.inf
+            return
+
+        inside_score = -math.inf
+        children_list_k = self.get_children(k)
+        ## If this node has no child edge, assume there is one edge with no child node
+        ## This is done so that every node is visited in the feature extraction step below
+        if len(children_list_k) == 0:
+            children_list_k = np.zeros((1, 0))
+
+        scores = []
+        for children_k_index in range(len(children_list_k)):
+            children_k = children_list_k[children_k_index]
+            ignore_flag = False
+            for child_k in children_k:
+                if child_k < 0:
+                    continue
+                if self.is_removed(child_k):
+                    ignore_flag = True
+            if ignore_flag:
+                continue
+            fa = self.param.extract(self, k, children_k, children_k_index)
+            global_param_version = self.param.fm.get_param_g().get_version()
+            score = fa.get_score(self.param, global_param_version)
+            for child_k in children_k:
+                if child_k < 0:
+                    continue
+                score += self.inside_scores[child_k]
+            scores.append(score)
+            self.inside_scores[k] = log_sum_exp(scores)
+
+
+    def touch(self):
+        pass
+
+
+    def get_node_array(self, k):
+        node = self.get_node(k)
+        return NetworkIDMapper.to_hybrid_node_array(node)
+
+
+    @abstractmethod
+    def get_children(self, k) -> np.ndarray:
+        pass
+
+
+    @abstractmethod
+    def get_node(self, k):
+        pass
+
+
+    @abstractmethod
+    def count_nodes(self) -> int:
+        pass
+
+
+    @abstractmethod
+    def is_removed(self, k):
+        pass
+
+
+    def getMaxSharedArray(self):
+
+
+        if self.maxSharedArray == None or self.count_nodes() > len(self.maxSharedArray):
+            self.maxSharedArray = autograd.Variable(
+                torch.Tensor(self.count_nodes()).fill_(0.0))  ##np.zeros(self.count_nodes(), dtype=np.float)
+        return self.maxSharedArray
+
+
+    def getMaxPathSharedArray(self):
+        if self.maxPathsSharedArrays == None or self.count_nodes() > len(self.maxPathsSharedArrays):
+            self.maxPathsSharedArrays = [None for i in range(self.count_nodes())]
+        return self.maxPathsSharedArrays
+
+    def is_sum_node(self, k):
+        return False
+
+
+    def max(self):
+        self._max = self.getMaxSharedArray()
+        self._max_paths = self.getMaxPathSharedArray()
+        for k in range(self.count_nodes()):
+            self.maxk(k)
+
+
+    def maxk(self, k):
+        if self.is_removed(k):
+            self._max[k] = float("-inf")
+            return
+
+        if self.is_sum_node(k):
+            inside = 0.0
+            children_list_k = self.get_children(k)
+
+            if len(children_list_k) == 0:
+                children_list_k = np.zeros((1, 0))
+
+            scores = []
+            for children_k_index in range(len(children_list_k)):
+                children_k = children_list_k[children_k_index]
+                ignore_flag = False
+                for child_k in children_k:
+                    if child_k < 0:
+                        continue
+                    if self.is_removed(child_k):
+                        ignore_flag = True
+
+                if ignore_flag:
+                    continue
+
+                fa = self.param.extract(self, k, children_k, children_k_index)
+                global_param_version = self.param.fm.get_param_g().get_version()
+                score = fa.get_score(self.param, global_param_version)
+                for child_k in children_k:
+                    if child_k < 0:
+                        continue
+
+                    score += self._max[child_k]
+
+                    # inside = sumLog(inside, score)
+                scores.append(score)
+
+            self._max[k] = log_sum_exp(scores)
+
+        else:
+
+            children_list_k = self.get_children(k)
+            self._max[k] = float("-inf")
+
+            for children_k_index in range(len(children_list_k)):
+                children_k = children_list_k[children_k_index]
+                ignore_flag = False
+                for child_k in children_k:
+                    if child_k < 0:
+                        continue
+                    if self.is_removed(child_k):
+                        ignore_flag = True
+                        break
+
+                if ignore_flag:
+                    continue
+
+                fa = self.param.extract(self, k, children_k, children_k_index)
+                global_param_version = self.param.fm.get_param_g().get_version()
+                score = fa.get_score(self.param, global_param_version)
+                for child_k in children_k:
+                    if child_k < 0:
+                        score += self._max[child_k]
+
+                if score >= self._max[k]:
+                    self._max[k] = score
+                self._max_paths[k] = children_k
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
