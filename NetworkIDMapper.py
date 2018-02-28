@@ -1,11 +1,9 @@
 from __future__ import print_function
-import sys
 import numpy as np
 from NetworkConfig import *
+from Utils import *
 
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
 
 
 class NetworkIDMapper:
