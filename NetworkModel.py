@@ -32,48 +32,60 @@ class NetworkModel(nn.Module):
     def get_network_compiler(self):
         return self._compiler
 
-    def split_instances_for_train(self):
-        eprint("#instances=", len(self._all_instances))
-        insts = [None for i in range(len(self._all_instances))]
-        insts_list = [None for i in range(len(self._all_instances))]
-        thread_id = 0
-        for k in range(len(self._all_instances)):
-            inst = self._all_instances[k]
-            insts_list[thread_id].append(inst)
-            thread_id = (thread_id + 1) % self._num_threads
+    def split_instances_for_train(self, insts_before_split):
+        eprint("#instances=", len(insts_before_split))
+        insts = [None for i in range(len(insts_before_split) * 2)]
 
-        for thread_id in range(self._num_threads):
-            size = len(insts_list[thread_id])
-            insts[thread_id] = [None for i in range(2 * size)]
-            for i in range(size):
-                inst = insts_list[thread_id][i]
-                insts[thread_id][2 * i + 1] = inst
-                inst_new = inst.duplicate()
-                inst_new.set_instance_id(-inst.get_instance_id())
-                inst_new.set_weight(-inst.get_weight())
-                inst_new.set_unlabeled()
-                insts[thread_id][2 * i] = inst_new
-            print("Thread ", thread_id, " has ", len(insts[thread_id]), " instances.")
-
+        k=0
+        for i in range(0, len(insts), 2):
+            insts[i + 1] = insts_before_split[k]
+            insts[i] = insts_before_split[k].duplicate()
+            insts[i].set_instance_id(-insts[i].get_instance_id())
+            insts[i].set_weight(-insts[i].get_weight())
+            insts[i].set_unlabeled()
+            k = k + 1
         return insts
 
+    def lock_it(self):
+        gnp = self._fm.get_param_g()
+
+        if gnp.is_locked():
+            return
+
+        weights_new = torch.nn.Parameter(torch.randn(gnp.size()))  # self.size
+        print('weights_new type:', type(weights_new))
+        # weights_new.fill_(0.0)  ## TODO: need to randomly initialize
+
+
+        self.weights = weights_new
+        gnp.version = 0
+        gnp._string_index.lock()
+        gnp.locked = True
+        eprint(gnp._size, " features")
+
     def train(self, train_insts, max_iterations):
-        insts = train_insts #self.prepare_instance_for_compilation(train_insts)
+        insts_before_split = train_insts #self.prepare_instance_for_compilation(train_insts)
 
+        insts = self.split_instances_for_train(insts_before_split)
 
+        self._param = LocalNetworkParam(self, self._fm, len(insts))
+        self._fm.set_local_param(self._param)
 
-        self._param = LocalNetworkParam(self._fm, len(insts))
         self._all_instances = insts
         if NetworkConfig.PRE_COMPILE_NETWORKS:
             self.pre_compile_networks(insts)
         keep_existing_threads = True if NetworkConfig.PRE_COMPILE_NETWORKS else False
         self.touch(insts, keep_existing_threads)
 
+
         self._param.finalize_it()
 
-        self._fm.get_param_g.lock_it()
+        #self._fm.get_param_g().lock_it()
+        self.lock_it()
 
-        optimizer = torch.optim.LBFGS(self.parameters())  # lr=0.8
+
+        optimizer = torch.optim.SGD(self.parameters(), lr = 0.01)  # lr=0.8
+        #optimizer = torch.optim.LBFGS(self.parameters())  # lr=0.8
         for it in range(max_iterations):
 
             optimizer.zero_grad()
@@ -81,10 +93,17 @@ class NetworkModel(nn.Module):
             all_loss = 0  ### scalar
 
             for i in range(len(self._all_instances)):
-                loss = self.forward(self.get_network(self._all_instances[i]))
-                all_loss += loss
-                loss.backward()
+                loss = self.forward(self.get_network(i))
+                all_loss -= loss
+                #loss.backward()
+
+            all_loss.backward()
+            print("Iteration ", it,": Obj=",  all_loss.data[0])
+            #print('bWeight:', self.weights)
+            # print("bGrad:", self.weights.grad)
             optimizer.step()
+            #print('aWeight:', self.weights)
+            # print("aGrad:", self.weights.grad)
 
 
     def forward(self, network):
@@ -99,7 +118,7 @@ class NetworkModel(nn.Module):
         inst = self._all_instances[network_id]
 
         network = self._compiler.compile(network_id, inst, self._param)
-
+        #print("after compile: ", network)
 
 
         if self._cache_networks:
@@ -133,10 +152,16 @@ class NetworkModel(nn.Module):
 
         self._all_instances = instances
 
+        self._param = LocalNetworkParam(self, self._fm, len(instances))
+        self._fm.set_local_param(self._param)
+
         instances_output = []
+
         for k in range(len(instances)):
             instance = instances[k]
-            network = self._compiler.compile(k, instance, self.param)
+            # print("decode ", instance.is_labeled)
+
+            network = self._compiler.compile(k, instance, self._param)
             network.max()
             instance_output = self._compiler.decompile(network)
             instances_output.append(instance_output)

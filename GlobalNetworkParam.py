@@ -9,9 +9,15 @@ class GlobalNetworkParam:
         self._string_index = StringIndex()
         self.locked = False
         self.feature_int_dict = {}
-        self.size = 0
+        self._size = 0
         self.weights = None
         self.version = 0
+
+    def get_version(self):
+        return self.version
+
+    def to_int(self, s):
+        return self._string_index.get_or_put(s)
 
 
     def to_feature(self, network, ftype, foutput, finput):
@@ -37,25 +43,27 @@ class GlobalNetworkParam:
             if fname_id in self.feature_int_dict:
                 return self.feature_int_dict[fname_id]
             else:
-                self.size = len(self.feature_int_dict)
-                self.feature_int_dict[fname_id] = self.size
-                return self.size
+                self.feature_int_dict[fname_id] = len(self.feature_int_dict)
+                self._size += 1
+                return self.feature_int_dict[fname_id]
 
 
-    def lock_it(self):
-        if self.is_locked():
-            return
-        weights_new = torch.nn.Parameter(self.size)
-        weights_new.fill_(0.0)  ## TODO: need to randomly initialize
-        self.weights = weights_new
-        self.version = 0
-        self._string_index.lock()
-        self.locked = True
-        eprint(self.size, " features")
+    # def lock_it(self):
+    #     if self.is_locked():
+    #         return
+    #
+    #     weights_new = torch.nn.Parameter(torch.Tensor(self.size()).fill_(0.0)) #self.size
+    #     print('weights_new type:', type(weights_new))
+    #     #weights_new.fill_(0.0)  ## TODO: need to randomly initialize
+    #     self.weights = weights_new
+    #     self.version = 0
+    #     self._string_index.lock()
+    #     self.locked = True
+    #     eprint(self._size, " features")
 
 
     def size(self):
-        return self.size
+        return self._size
 
 
 

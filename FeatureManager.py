@@ -7,13 +7,16 @@ from abc import ABC, abstractmethod
 class FeatureManager:
 
     def __init__(self, param_g):
-        self.param_g = param_g
+        self._param_g = param_g
 
         self.numThreads = NetworkConfig.NUM_THREADS
-        self._params_l = LocalNetworkParam(self, self.numThreads)
+        #self._params_l = LocalNetworkParam(self, self.numThreads)
         self._cache_enabled = False
         self._num_networks = None
         self._cache = None
+
+    def set_local_param(self, param_l):
+        self._params_l = param_l
 
 
     def enable_cache(self, num_networks):
@@ -62,7 +65,7 @@ class FeatureManager:
             if self._cache[network.get_network_id()][parent_k][children_k_index] != None:
                 return self._cache[network.get_network_id()][parent_k][children_k_index]
 
-        fa = self.extract_hepler(network, parent_k, children_k, children_k_index)
+        fa = self.extract_helper(network, parent_k, children_k, children_k_index)
 
 
 
@@ -75,8 +78,8 @@ class FeatureManager:
 
 
 
-    def create_feature_array(self, network, feature_indices, next_fa):
-        if (not network.get_instance().is_labeled()) and network.get_instance().get_instance_id() > 0:
+    def create_feature_array(self, network, feature_indices, next_fa = None):
+        if (not network.get_instance().is_labeled) and network.get_instance().get_instance_id() > 0:
             return FeatureArray(fs=feature_indices, next_fa=next_fa)
 
         if NetworkConfig.AVOID_DUPLICATE_FEATURES:

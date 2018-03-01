@@ -5,9 +5,9 @@ from FeatureArray import FeatureArray
 
 class LocalNetworkParam:
 
-    def __init__(self, fm, num_networks):
+    def __init__(self, model, fm, num_networks):
 
-
+        self.model = model
         self._num_networks = num_networks
         self.fm = fm
         self.obj = 0.0
@@ -48,10 +48,15 @@ class LocalNetworkParam:
 
 
     def get_weight(self, feature_id):
+        # if self.is_global_mode():
+        #     return self.fm.get_param_g.get_weight(feature_id)
+        # else:
+        #     return self.fm.get_param_g.get_weight(self._fs[feature_id])
+
         if self.is_global_mode():
-            return self.fm.get_param_g.get_weight(feature_id)
+            return self.model.weights[feature_id]
         else:
-            return self.fm.get_param_g.get_weight(self._fs[feature_id])
+            return self.model.weights[self._fs[feature_id]]
 
 
 

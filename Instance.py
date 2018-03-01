@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 class Instance:
 
     def __init__(self, instance_id, weight, input = None, output = None):
-        self.instanceId = instance_id
+        self.instance_id = instance_id
         self.weight = weight
         self.input = input
         self.output = output
@@ -13,7 +13,10 @@ class Instance:
         self.is_labeled = True
 
     def set_instance_id(self, inst_id):
-        self.instanceId = inst_id
+        self.instance_id = inst_id
+
+    def get_instance_id(self):
+        return self.instance_id
 
     def get_weight(self):
         return self.weight

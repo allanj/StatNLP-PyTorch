@@ -9,7 +9,9 @@ def to_scalar(var):
 
 def argmax(vec):
     # return the argmax as a python int
-    _, idx = torch.max(vec, 1)
+    # print("vec is ", vec)
+    _, idx = torch.max(vec, 0)
+    # print("max is ", idx.view(-1).data.tolist()[0])
     return to_scalar(idx)
 
 
@@ -22,10 +24,11 @@ def prepare_sequence(seq, to_ix):
 
 
 def log_sum_exp(vec):
-    max_score = vec[0, argmax(vec)]
-    max_score_broadcast = max_score.view(1, -1).expand(1, vec.size()[1])
+    # print('vec:', vec)
+    max_score = vec[argmax(vec)]
+    #max_score_broadcast = max_score.view(1, -1).expand(1, vec.size()[1])
     return max_score + \
-           torch.log(torch.sum(torch.exp(vec - max_score_broadcast)))
+           torch.log(torch.sum(torch.exp(vec - max_score)))  #max_score_broadcast
 
 
 def eprint(*args, **kwargs):

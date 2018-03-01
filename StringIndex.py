@@ -6,10 +6,12 @@ class StringIndex:
         self.array = None
 
     def get_or_put(self, str):
-        if str in self.index:
+        if str not in self.index:
             if self.locked:
                 return -1
             self.index[str] = len(self.index)
+
+
         return self.index[str]
 
     def put(self, str):

@@ -8,6 +8,7 @@ from FeatureManager import FeatureManager
 from FeatureArray import FeatureArray
 from NetworkModel import NetworkModel
 from enum import Enum
+import torch
 
 
 class NodeType(Enum):
@@ -25,7 +26,7 @@ class LRInstance(Instance):
         return len(input)
 
     def duplicate(self):
-        dup = Instance(self.instance_id, self.weight, self.input, self.output)
+        dup = LRInstance(self.instance_id, self.weight, self.input, self.output)
         return dup
 
     def removeOutput(self):
@@ -68,18 +69,21 @@ class LRFeatureManager(FeatureManager):
     def extract_helper(self, network, parent_k, children_k, children_k_index):
         parent_arr = network.get_node_array(parent_k)
         node_type_id = parent_arr[0]
-        if node_type_id == 0 and node_type_id == 2:
+        if node_type_id == 0 or node_type_id == 2:
             return FeatureArray.EMPTY
         inst = network.get_instance()
+        #print("input ", inst.get_input(), " labeled: ", inst.is_labeled)
         ft_strs = inst.get_input().split(",")
 
         fs = []
-        label_id = parent_arr[1]
-        fs.append(self._param_g.toFeature(network, "location", label_id, ft_strs[0]))
-        fs.append(self._param_g.toFeature(network, "quality", label_id, ft_strs[1]))
-        fs.append(self._param_g.toFeature(network, "people", label_id, ft_strs[2]))
+        label_id = str(parent_arr[1])
 
-        return self.createFeatureArray(network, fs)
+        fs.append(self._param_g.to_feature(network, "location", label_id, ft_strs[0]))
+        fs.append(self._param_g.to_feature(network, "quality", label_id, ft_strs[1]))
+        fs.append(self._param_g.to_feature(network, "people", label_id, ft_strs[2]))
+        # print('parent_arr:', parent_arr)
+        # print(fs)
+        return self.create_feature_array(network, fs)
 
 
 ##Done
@@ -104,6 +108,10 @@ class LRReader():
                 output_id = LRReader.label2id_map[output]
 
             inst = LRInstance(len(insts) + 1, 1, inputs, output_id)
+            if is_labeled:
+                inst.set_labeled()
+            else:
+                inst.set_unlabeled()
             insts.append(inst)
         f.close()
 
@@ -115,9 +123,9 @@ class LRNetworkCompiler(NetworkCompiler):
     def __init__(self):
         ##node type and label id
         NetworkIDMapper.set_capacity(np.asarray([3, 2], dtype=np.int64))
-        self.build_generic_network()
         self._all_nodes = None
         self._all_children = None
+        self.build_generic_network()
 
     def to_leaf(self):
         return NetworkIDMapper.to_hybrid_node_ID(np.asarray([0, 0], dtype=np.int64))
@@ -145,12 +153,15 @@ class LRNetworkCompiler(NetworkCompiler):
 
         return network
 
-    def compile_unlabled(self, network_id, inst, param):
+    def compile_unlabeled(self, network_id, inst, param):
         root = self.to_root()
         root_idx = self._all_nodes.index(root)
         num_nodes = root_idx + 1
-        return BaseNetwork.NetworkBuilder.quick_build(network_id, inst, self._all_nodes, self._all_children, num_nodes,
+        #print("all nodes: ", num_nodes)
+        network =  BaseNetwork.NetworkBuilder.quick_build(network_id, inst, self._all_nodes, self._all_children, num_nodes,
                                                       param, self)
+        # print("inside compile unlabeled: ", network)
+        return network
 
     def build_generic_network(self):
         builder = BaseNetwork.NetworkBuilder.builder()
@@ -167,7 +178,9 @@ class LRNetworkCompiler(NetworkCompiler):
 
         network = builder.build(None, None, None, None)
         self._all_nodes = network.get_all_nodes()
+        print("generic all nodes: ", self._all_nodes)
         self._all_children = network.get_all_children()
+        print("generic all children: ", self._all_children)
 
 
     def decompile(self, network):
@@ -182,9 +195,10 @@ class LRNetworkCompiler(NetworkCompiler):
 
 
 if __name__ == "__main__":
-    train_insts = LRReader.read_insts("train.txt", True, -1)
+    train_file = "train.txt"
+    train_insts = LRReader.read_insts(train_file, True, -1)
 
-
+    torch.manual_seed(1)
 
     gnp = GlobalNetworkParam()
     fm = LRFeatureManager(gnp)
@@ -193,8 +207,14 @@ if __name__ == "__main__":
     print('CAPACITY:', NetworkIDMapper.CAPACITY)
 
     model = NetworkModel(fm, compiler)
-    model.train(train_insts, 1000)
+    model.train(train_insts, 500)
 
-    # test_insts = LRReader.read_inst(train_file, False)
-    # results = model.test(test_insts)
+    test_file = "test.txt"
+    test_insts = LRReader.read_insts(test_file, False, -1)
+    results = model.test(test_insts)
+
+    print()
+    print('Result:')
+    for i in range(len(test_insts)):
+        print("resulit is :", results[i].get_output())
 

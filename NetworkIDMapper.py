@@ -46,7 +46,6 @@ class NetworkIDMapper:
                 raise Exception("find float")
 
 
-        print('array:',array)
         if len(array) != len(NetworkIDMapper.CAPACITY):
             raise Exception("array size is ", len(array))
 
