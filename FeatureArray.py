@@ -4,12 +4,9 @@ from Utils import *
 import FeatureBox
 
 
-def negative_infinity():
-    return FeatureArray(total_score=-math.inf)
-
 class FeatureArray:
 
-    NEGATIVE_INFINITY = FeatureArray(total_score=-math.inf)
+    NEGATIVE_INFINITY = None
 
     def __init__(self, fs=None, fb=None, next_fa=None, total_score=None):
 
@@ -156,5 +153,9 @@ class FeatureArray:
 
         return False
 
+
+
+
+FeatureArray.NEGATIVE_INFINITY = FeatureArray(total_score=-math.inf)
 
 

@@ -16,6 +16,8 @@ class BaseNetwork(TableLookupNetwork):
         return self.node_count
 
 
+
+
     class NetworkBuilder:
 
         def __init__(self):
@@ -23,7 +25,7 @@ class BaseNetwork(TableLookupNetwork):
 
         @staticmethod
         def builder():
-            return NetworkBuilder()
+            return BaseNetwork.NetworkBuilder()
 
         @staticmethod
         def quick_build(network_id, instance, nodes, children, node_count, param, compiler):
@@ -125,7 +127,7 @@ class BaseNetwork(TableLookupNetwork):
             result = None
 
             # if network_id != None or instance != None or param != None or compiler != None:
-            result = NetworkBuilder.quick_build(network_id, instance, node_list, children_list, len(node_list), param, compiler)
+            result = BaseNetwork.NetworkBuilder.quick_build(network_id, instance, node_list, children_list, len(node_list), param, compiler)
             # TODO: handle the case when network_id != None or instance != None or param != None or compiler != None
             # this is for rudimentary network builder
 
@@ -158,6 +160,8 @@ class BaseNetwork(TableLookupNetwork):
     def check_node_validity(self, node):
         if node not in self._children_tmp:
             raise Exception("Node not found:", NetworkIDMapper.toHybridNodeArray(node))
+
+
 
 
 

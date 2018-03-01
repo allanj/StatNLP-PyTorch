@@ -79,7 +79,24 @@ class Network:
 
 
     def touch(self):
-        pass
+        for k in range(len(self.count_nodes())):
+            self.touch_node(k)
+
+
+    def touch_node(self, k):
+        '''
+        :param k:
+        :return:
+        '''
+        if self.is_removed(k):
+            return
+
+        children_lisk_k = self.get_children(k)
+        for children_k_index in range(len(children_lisk_k)):
+            children_k = children_lisk_k[children_k_index]
+            self.param.extract(self, k, children_k, children_k_index)
+
+
 
 
     def get_node_array(self, k):
