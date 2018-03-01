@@ -25,6 +25,7 @@ class BaseNetwork(TableLookupNetwork):
         def builder():
             return NetworkBuilder()
 
+        @staticmethod
         def quick_build(network_id, instance, nodes, children, node_count, param, compiler):
             return BaseNetwork(network_id, instance, nodes, children, node_count, param, compiler)
 
@@ -49,7 +50,7 @@ class BaseNetwork(TableLookupNetwork):
         def num_nodes_tmp(self):
             return len(self._children_tmp)
 
-        def get_children_tmp(self, node)
+        def get_children_tmp(self, node):
             return self._children_tmp[node]
 
         def get_nodes_tmp(self):
