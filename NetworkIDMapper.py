@@ -16,7 +16,7 @@ class NetworkIDMapper:
     @staticmethod
     def set_capacity(new_capacity):
         NetworkIDMapper.CAPACITY = new_capacity
-        v = np.zeros(len(NetworkIDMapper.CAPACITY))
+        v = np.zeros(len(NetworkIDMapper.CAPACITY), dtype=np.int64)
         for k in range(len(v)):
             v[k] = new_capacity[k] - 1
             u = NetworkIDMapper.to_hybrid_node_array(NetworkIDMapper.to_hybrid_node_ID(v))
@@ -26,7 +26,7 @@ class NetworkIDMapper:
 
     @staticmethod
     def to_hybrid_node_array(value):
-        result = np.zeros(len(NetworkIDMapper.CAPACITY))
+        result = np.zeros(len(NetworkIDMapper.CAPACITY), dtype=np.int64)
 
         for k in range(len(result) - 1, 0, -1):
             v = value // NetworkIDMapper.CAPACITY[k]
@@ -40,6 +40,13 @@ class NetworkIDMapper:
 
     @staticmethod
     def to_hybrid_node_ID(array):
+
+        for item in array:
+            if isinstance(item, float):
+                raise Exception("find float")
+
+
+        print('array:',array)
         if len(array) != len(NetworkIDMapper.CAPACITY):
             raise Exception("array size is ", len(array))
 
@@ -47,6 +54,7 @@ class NetworkIDMapper:
         v = array[0]
 
         for k in range(1, len(array)):
+            #print(array[k], NetworkIDMapper.CAPACITY[k])
             if array[k] >= NetworkIDMapper.CAPACITY[k]:
                 raise Exception("Invalid: capacity for ", k, " is ", NetworkIDMapper.CAPACITY[k], " but the value is ", array[k])
             v = v * NetworkIDMapper.CAPACITY[k] + array[k]

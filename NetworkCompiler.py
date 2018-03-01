@@ -8,10 +8,10 @@ class NetworkCompiler:
         pass
 
     def compile(self, network_id, instance, param):
-        if instance.is_labeled():
-            self.compile_labeled(network_id, instance, param)
+        if instance.is_labeled:
+            return self.compile_labeled(network_id, instance, param)
         else:
-            self.compile_unlabeled(network_id, instance, param)
+            return self.compile_unlabeled(network_id, instance, param)
 
 
     @abstractmethod

@@ -53,10 +53,18 @@ class LRInstance(Instance):
         return self.prediction != None
 
 
+    def __str__(self):
+        return 'input:' + str(self.input) + '\toutput:' + str(self.output) + ' is_labeled:' + str(self.is_labeled)
+
+
 class LRFeatureManager(FeatureManager):
     def __init__(self, param_g):
         super().__init__(param_g)
 
+
+    # @abstractmethod
+    # def extract_helper(self, network, parent_k, children_k, children_k_index):
+    #     pass
     def extract_helper(self, network, parent_k, children_k, children_k_index):
         parent_arr = network.get_node_array(parent_k)
         node_type_id = parent_arr[0]
@@ -77,6 +85,8 @@ class LRFeatureManager(FeatureManager):
 ##Done
 class LRReader():
 
+    label2id_map = {}
+
     @staticmethod
     def read_insts(file, is_labeled, number):
         insts = []
@@ -86,7 +96,14 @@ class LRReader():
             fields = line.split(' ')
             inputs = fields[0]
             output = fields[1]
-            inst = LRInstance(len(insts) + 1, 1, inputs, output)
+
+            if not output in LRReader.label2id_map:
+                output_id = len(LRReader.label2id_map)
+                LRReader.label2id_map[output] = output_id
+            else:
+                output_id = LRReader.label2id_map[output]
+
+            inst = LRInstance(len(insts) + 1, 1, inputs, output_id)
             insts.append(inst)
         f.close()
 
@@ -97,25 +114,26 @@ class LRNetworkCompiler(NetworkCompiler):
 
     def __init__(self):
         ##node type and label id
-        NetworkIDMapper.set_capacity(np.asarray([3, 2]))
+        NetworkIDMapper.set_capacity(np.asarray([3, 2], dtype=np.int64))
         self.build_generic_network()
         self._all_nodes = None
         self._all_children = None
 
     def to_leaf(self):
-        return NetworkIDMapper.to_hybrid_node_ID(np.asanyarray([0, 0]))
+        return NetworkIDMapper.to_hybrid_node_ID(np.asarray([0, 0], dtype=np.int64))
 
     def to_node(self, label_id):
-        return NetworkIDMapper.to_hybrid_node_ID(np.asanyarray([1, label_id]))
+        return NetworkIDMapper.to_hybrid_node_ID(np.asarray([1, label_id], dtype=np.int64))
 
     def to_root(self):
-        return NetworkIDMapper.to_hybrid_node_ID(np.asanyarray([2, 0]))
+        return NetworkIDMapper.to_hybrid_node_ID(np.asarray([2, 0], dtype=np.int64))
 
     def compile_labeled(self, network_id, inst, param):
         builder = BaseNetwork.NetworkBuilder.builder()
         leaf = self.to_leaf()
+        builder.add_node(leaf)
 
-        node = self.to_node(inst.get_output)
+        node = self.to_node(inst.get_output())
         builder.add_node(node)
         builder.add_edge(node, [leaf])
 
@@ -166,9 +184,13 @@ class LRNetworkCompiler(NetworkCompiler):
 if __name__ == "__main__":
     train_insts = LRReader.read_insts("train.txt", True, -1)
 
+
+
     gnp = GlobalNetworkParam()
     fm = LRFeatureManager(gnp)
     compiler = LRNetworkCompiler()
+
+    print('CAPACITY:', NetworkIDMapper.CAPACITY)
 
     model = NetworkModel(fm, compiler)
     model.train(train_insts, 1000)

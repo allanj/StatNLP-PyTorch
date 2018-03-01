@@ -30,3 +30,10 @@ def log_sum_exp(vec):
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
+
+def print_insts(insts):
+    print('Instances:')
+    for inst in insts:
+        print(inst)
+    print()

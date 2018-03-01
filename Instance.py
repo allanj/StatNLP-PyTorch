@@ -10,6 +10,7 @@ class Instance:
         self.labeled_instance = None
         self.unlabeled_instance = None
         self.prediction = None
+        self.is_labeled = True
 
     def set_instance_id(self, inst_id):
         self.instanceId = inst_id
@@ -28,6 +29,9 @@ class Instance:
 
     def remove_output(self):
         self.output = None
+
+    # def is_labeled(self):
+    #     return self.is_labeled
 
     @abstractmethod
     def size(self):

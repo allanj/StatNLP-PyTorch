@@ -79,7 +79,7 @@ class Network:
 
 
     def touch(self):
-        for k in range(len(self.count_nodes())):
+        for k in range(self.count_nodes()):
             self.touch_node(k)
 
 

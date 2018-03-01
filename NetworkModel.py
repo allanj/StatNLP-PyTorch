@@ -3,10 +3,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn import Parameter
-from Utils import *
 from GlobalNetworkParam import GlobalNetworkParam
 from NetworkConfig import NetworkConfig
+from LocalNetworkParam import LocalNetworkParam
 import torch.optim
+from Utils import *
+
 
 
 class NetworkModel(nn.Module):
@@ -56,7 +58,12 @@ class NetworkModel(nn.Module):
         return insts
 
     def train(self, train_insts, max_iterations):
-        insts = self.prepare_instance_for_compilation(train_insts)
+        insts = train_insts #self.prepare_instance_for_compilation(train_insts)
+
+
+
+        self._param = LocalNetworkParam(self._fm, len(insts))
+        self._all_instances = insts
         if NetworkConfig.PRE_COMPILE_NETWORKS:
             self.pre_compile_networks(insts)
         keep_existing_threads = True if NetworkConfig.PRE_COMPILE_NETWORKS else False
@@ -89,7 +96,11 @@ class NetworkModel(nn.Module):
         if self._cache_networks and self._networks[network_id] != None:
             return self._networks[network_id]
 
-        network = self._compiler.compile(network_id, self._all_instances[network_id], self.param)
+        inst = self._all_instances[network_id]
+
+        network = self._compiler.compile(network_id, inst, self._param)
+
+
 
         if self._cache_networks:
             self._networks[network_id] = network
@@ -97,14 +108,16 @@ class NetworkModel(nn.Module):
         return network
 
 
-    def touch(self):
+    def touch(self, insts, keep_existing_threads = False):
         if self._networks == None:
-            self._networks = [None for i in range(len(self._all_instances))]
+            self._networks = [None for i in range(len(insts))]
 
-        for network_id in range(len(self._all_instances)):
+        for network_id in range(len(insts)):
             if network_id % 100 == 0:
                 eprint('.', end='')
-            self.get_network(network_id).touch()
+            network =  self.get_network(network_id)
+
+            network.touch()
 
         eprint()
 

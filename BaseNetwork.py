@@ -141,8 +141,8 @@ class BaseNetwork(TableLookupNetwork):
                     continue
 
                 if child >= parent:
-                    eprint(NetworkIDMapper.toHybridNodeArray(parent))
-                    eprint(NetworkIDMapper.toHybridNodeArray(child))
+                    eprint(NetworkIDMapper.to_hybrid_node_array(parent))
+                    eprint(NetworkIDMapper.to_hybrid_node_array(child))
                     eprint()
                     raise Exception(
                         "In an edge, the parent needs to have larger node ID in order to have a proper schedule for inference. Violation: ",
@@ -159,7 +159,7 @@ class BaseNetwork(TableLookupNetwork):
 
         def check_node_validity(self, node):
             if node not in self._children_tmp:
-                raise Exception("Node not found:", NetworkIDMapper.toHybridNodeArray(node))
+                raise Exception("Node not found:", NetworkIDMapper.to_hybrid_node_array(node))
 
 
 

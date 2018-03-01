@@ -11,7 +11,7 @@ class FeatureManager:
 
         self.numThreads = NetworkConfig.NUM_THREADS
         self._params_l = LocalNetworkParam(self, self.numThreads)
-        self._cachedEnabled = False
+        self._cache_enabled = False
         self._num_networks = None
         self._cache = None
 
@@ -19,7 +19,7 @@ class FeatureManager:
     def enable_cache(self, num_networks):
         self._num_networks = num_networks
         self._cache = [None for i in range(num_networks)]
-        self._cachedEnabled = True
+        self._cache_enabled = True
 
     def disable_cache(self):
 
@@ -39,9 +39,13 @@ class FeatureManager:
     def get_params_l(self):
         return self._params_l
 
+    @abstractmethod
+    def extract_helper(self, network, parent_k, children_k, children_k_index):
+        pass
+
 
     def extract(self, network, parent_k, children_k, children_k_index):
-        should_cache = self.is_cache_enable() and (
+        should_cache = self.is_cache_enabled() and (
                 (not NetworkConfig.PARALLEL_FEATURE_EXTRACTION) or NetworkConfig.NUM_THREADS == 1 or (
             not NetworkConfig.BUILD_FEATURES_FROM_LABELED_ONLY) or self._is_finalized)
 
@@ -53,13 +57,14 @@ class FeatureManager:
                 self._cache[network.get_network_id()] = [None for i in range(network.count_nodes())]
 
             if self._cache[network.get_network_id()][parent_k] == None:
-                self._cache[network.get_network_id()][parent_k] = [FeatureArray() for i in range(
-                    len(network.get_children(parent_k)))]  # TO DO: FeatureArray
+                self._cache[network.get_network_id()][parent_k] = [None for i in range(len(network.get_children(parent_k)))]  # TO DO: FeatureArray
 
             if self._cache[network.get_network_id()][parent_k][children_k_index] != None:
                 return self._cache[network.get_network_id()][parent_k][children_k_index]
 
         fa = self.extract_hepler(network, parent_k, children_k, children_k_index)
+
+
 
         if should_cache:
             self._cache[network.get_network_id()][parent_k][children_k_index] = fa
@@ -67,9 +72,7 @@ class FeatureManager:
         return fa
 
 
-    @abstractmethod
-    def extract_helper(self, network, parent_k, children_k, children_k_index):
-        pass
+
 
 
     def create_feature_array(self, network, feature_indices, next_fa):

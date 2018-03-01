@@ -8,7 +8,7 @@ class LocalNetworkParam:
     def __init__(self, fm, num_networks):
 
 
-        self.num_networks = num_networks
+        self._num_networks = num_networks
         self.fm = fm
         self.obj = 0.0
         self._is_finalized = False
@@ -90,7 +90,7 @@ class LocalNetworkParam:
          * @param children_k_index (int)
          * @return
         '''
-        should_cache = self.is_cache_enable() and (
+        should_cache = self.is_cache_enabled() and (
                     (not NetworkConfig.PARALLEL_FEATURE_EXTRACTION) or NetworkConfig.NUM_THREADS == 1 or (
                 not NetworkConfig.BUILD_FEATURES_FROM_LABELED_ONLY) or self._is_finalized)
 
@@ -102,7 +102,7 @@ class LocalNetworkParam:
                 self._cache[network.get_network_id()] = [None for i in range(network.count_nodes())]
 
             if self._cache[network.get_network_id()][parent_k] == None:
-                self._cache[network.get_network_id()][parent_k] = [FeatureArray() for i in range(len(network.get_children(parent_k)))]  # TO DO: FeatureArray
+                self._cache[network.get_network_id()][parent_k] = [None for i in range(len(network.get_children(parent_k)))]  # TO DO: FeatureArray
 
             if self._cache[network.get_network_id()][parent_k][children_k_index] != None:
                 return self._cache[network.get_network_id()][parent_k][children_k_index]
