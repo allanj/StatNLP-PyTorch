@@ -9,6 +9,7 @@ class Instance:
         self.output = output
         self.labeled_instance = None
         self.unlabeled_instance = None
+        self.prediction = None
 
     def set_instance_id(self, inst_id):
         self.instanceId = inst_id
