@@ -1,5 +1,5 @@
-import TableLookupNetwork
-import NetworkIDMapper
+from TableLookupNetwork import TableLookupNetwork
+from NetworkIDMapper import NetworkIDMapper
 from Utils import *
 
 
@@ -135,31 +135,31 @@ class BaseNetwork(TableLookupNetwork):
             return result
 
 
-    def check_link_validity(self, parent, children):
-        for child in children:
-            if child < 0:
-                continue
+        def check_link_validity(self, parent, children):
+            for child in children:
+                if child < 0:
+                    continue
 
-            if child >= parent:
-                eprint(NetworkIDMapper.toHybridNodeArray(parent))
-                eprint(NetworkIDMapper.toHybridNodeArray(child))
-                eprint()
-                raise Exception(
-                    "In an edge, the parent needs to have larger node ID in order to have a proper schedule for inference. Violation: ",
-                    parent, "\t", children)
+                if child >= parent:
+                    eprint(NetworkIDMapper.toHybridNodeArray(parent))
+                    eprint(NetworkIDMapper.toHybridNodeArray(child))
+                    eprint()
+                    raise Exception(
+                        "In an edge, the parent needs to have larger node ID in order to have a proper schedule for inference. Violation: ",
+                        parent, "\t", children)
 
-        self.check_node_validity(parent)
+            self.check_node_validity(parent)
 
-        for child in children:
-            if child < 0:
-                continue
+            for child in children:
+                if child < 0:
+                    continue
 
-            self.check_node_validity(child)
+                self.check_node_validity(child)
 
 
-    def check_node_validity(self, node):
-        if node not in self._children_tmp:
-            raise Exception("Node not found:", NetworkIDMapper.toHybridNodeArray(node))
+        def check_node_validity(self, node):
+            if node not in self._children_tmp:
+                raise Exception("Node not found:", NetworkIDMapper.toHybridNodeArray(node))
 
 
 

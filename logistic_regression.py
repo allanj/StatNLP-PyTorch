@@ -6,7 +6,6 @@ from GlobalNetworkParam import GlobalNetworkParam
 from Instance import Instance
 from FeatureManager import FeatureManager
 from FeatureArray import FeatureArray
-from LinearInstance import LinearInstance
 from NetworkModel import NetworkModel
 from enum import Enum
 
@@ -18,16 +17,15 @@ class NodeType(Enum):
 
 
 class LRInstance(Instance):
-    def __init__(self, instance_id, weight, input=None, output=None):
-        super.__init__(LinearInstance, instance_id, weight=1.0, input=None, output=None)
-
+    def __init__(self, instance_id, weight, input, output):
+        super().__init__(instance_id, weight, input, output)
 
 
     def size(self):
         return len(input)
 
     def duplicate(self):
-        dup = LinearInstance(self.instance_id, self.weight, self.input, self.output)
+        dup = Instance(self.instance_id, self.weight, self.input, self.output)
         return dup
 
     def removeOutput(self):
@@ -57,7 +55,7 @@ class LRInstance(Instance):
 
 class LRFeatureManager(FeatureManager):
     def __init__(self, param_g):
-        super.__init__(LRFeatureManager, param_g)
+        super().__init__(param_g)
 
     def extract_helper(self, network, parent_k, children_k, children_k_index):
         parent_arr = network.get_node_array(parent_k)
@@ -137,7 +135,6 @@ class LRNetworkCompiler(NetworkCompiler):
                                                       param, self)
 
     def build_generic_network(self):
-        BaseNetwork.NetworkBuilder
         builder = BaseNetwork.NetworkBuilder.builder()
         leaf = self.to_leaf()
         leaves = [leaf]
@@ -149,10 +146,10 @@ class LRNetworkCompiler(NetworkCompiler):
             builder.add_node(node)
             builder.add_edge(node, leaves)
             builder.add_edge(root, [node])
-        builder.build(None, None, None, None)
-        self._all_nodes = builder.get_all_nodes()
 
-        self._all_children = builder.get_all_children()
+        network = builder.build(None, None, None, None)
+        self._all_nodes = network.get_all_nodes()
+        self._all_children = network.get_all_children()
 
 
     def decompile(self, network):
@@ -167,7 +164,7 @@ class LRNetworkCompiler(NetworkCompiler):
 
 
 if __name__ == "__main__":
-    train_insts = LRReader.read_inst("train.txt", True)
+    train_insts = LRReader.read_insts("train.txt", True, -1)
 
     gnp = GlobalNetworkParam()
     fm = LRFeatureManager(gnp)

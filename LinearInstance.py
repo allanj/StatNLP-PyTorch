@@ -1,4 +1,4 @@
-import Instance
+from Instance import Instance
 
 class LinearInstance(Instance):
 

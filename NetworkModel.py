@@ -4,15 +4,15 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn import Parameter
 from Utils import *
-import GlobalNetworkParam
-import NetworkConfig
+from GlobalNetworkParam import GlobalNetworkParam
+from NetworkConfig import NetworkConfig
 import torch.optim
 
 
 class NetworkModel(nn.Module):
 
     def __init__(self, fm, compiler):
-        super.__init__(NetworkModel)
+        super().__init__()
         self._fm = fm
         self._num_threads = NetworkConfig.NUM_THREADS
         self._compiler = compiler

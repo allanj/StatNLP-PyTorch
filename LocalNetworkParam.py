@@ -1,7 +1,7 @@
 from Utils import *
-import NetworkConfig
-import StringIndex
-import FeatureArray
+from NetworkConfig import NetworkConfig
+from StringIndex import StringIndex
+from FeatureArray import FeatureArray
 
 class LocalNetworkParam:
 

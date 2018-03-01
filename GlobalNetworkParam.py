@@ -1,6 +1,6 @@
 import torch.nn
 from Utils import *
-import StringIndex
+from StringIndex import StringIndex
 
 
 class GlobalNetworkParam:

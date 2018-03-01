@@ -1,10 +1,10 @@
-import Network
+from Network import Network
 
 
 class TableLookupNetwork(Network):
 
     def __init__(self, network_id, inst, nodes, children, param, compiler):
-        super(network_id, inst, param, compiler)
+        super().__init__(network_id, inst, param)
         self.nodes = nodes
         self.children = children
 

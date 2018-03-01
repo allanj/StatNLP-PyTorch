@@ -1,7 +1,7 @@
-import LocalNetworkParam
-import NetworkConfig
-import FeatureArray
-import FeatureBox
+from LocalNetworkParam import LocalNetworkParam
+from NetworkConfig import NetworkConfig
+from FeatureArray import FeatureArray
+from FeatureBox import FeatureBox
 from abc import ABC, abstractmethod
 
 class FeatureManager:
@@ -10,7 +10,7 @@ class FeatureManager:
         self.param_g = param_g
 
         self.numThreads = NetworkConfig.NUM_THREADS
-        self._params_l = LocalNetworkParam[self.numThreads]
+        self._params_l = LocalNetworkParam(self, self.numThreads)
         self._cachedEnabled = False
         self._num_networks = None
         self._cache = None
