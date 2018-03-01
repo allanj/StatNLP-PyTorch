@@ -270,9 +270,9 @@ if __name__ == "__main__":
     print('CAPACITY:', NetworkIDMapper.CAPACITY)
 
     model = NetworkModel(fm, compiler)
-    model.train(train_insts, 6)
+    model.train(train_insts, 20)
 
-    test_insts = TagReader.read_insts(train_file, False, 10)
+    test_insts = TagReader.read_insts(test_file, False, 10)
     results = model.test(test_insts)
 
     print()

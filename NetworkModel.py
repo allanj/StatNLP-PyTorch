@@ -13,6 +13,8 @@ from Utils import *
 
 class NetworkModel(nn.Module):
 
+    Iter = 0
+
     def __init__(self, fm, compiler):
         super().__init__()
         self._fm = fm
@@ -87,7 +89,7 @@ class NetworkModel(nn.Module):
 
         # optimizer = torch.optim.SGD(self.parameters(), lr = 0.01)  # lr=0.8
         optimizer = torch.optim.LBFGS(self.parameters())  # lr=0.8
-        iter = 0
+        NetworkModel.Iter = 0
         for it in range(max_iterations):
 
             def closure():
@@ -102,15 +104,15 @@ class NetworkModel(nn.Module):
                     #loss.backward()
 
                 all_loss.backward()
-                print("Iteration ", it,": Obj=",  all_loss.data[0])
-                # iter += 1
+                print("Iteration ", NetworkModel.Iter,": Obj=",  all_loss.data[0])
+                NetworkModel.Iter += 1
 
                 return all_loss
             #print('bWeight:', self.weights)
             # print("bGrad:", self.weights.grad)
             optimizer.step(closure)
 
-            if iter > max_iterations:
+            if NetworkModel.Iter > max_iterations:
                 break
             #print('aWeight:', self.weights)
             # print("aGrad:", self.weights.grad)
