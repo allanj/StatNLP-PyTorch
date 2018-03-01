@@ -67,7 +67,8 @@ class TagNetworkCompiler(NetworkCompiler):
 
         NetworkIDMapper.set_capacity(np.asarray([200, 100, 3], dtype=np.int64))
 
-
+        print(self.label2id)
+        print(self.labels)
         self._all_nodes = None
         self._all_children = None
         self._max_size = 100
@@ -168,7 +169,7 @@ class TagFeatureManager(FeatureManager):
     #     pass
     def extract_helper(self, network, parent_k, children_k, children_k_index):
         parent_arr = network.get_node_array(parent_k)
-        node_type_id = parent_arr[0]
+        node_type_id = parent_arr[2]
         if node_type_id == 0 or node_type_id == 2:
             return FeatureArray.EMPTY
         inst = network.get_instance()
@@ -182,14 +183,14 @@ class TagFeatureManager(FeatureManager):
         w = sent[pos]
         lw = sent[pos - 1] if pos - 1 >= 0 else "START"
         rw = sent[pos + 1] if pos + 1 < size else "END"
-
+        # print(label_id)
         fs.append(self._param_g.to_feature(network, "unigram", label_id, w))
 
         child_arr = network.get_node_array(children_k[0])
         child_node_type_id = child_arr[2]
 
         child_label_id = str(child_arr[1])
-
+        child_label_id = "START" if child_node_type_id == 0 else child_label_id
         fs.append(self._param_g.to_feature(network, "transition", label_id, child_label_id))
 
         # print('parent_arr:', parent_arr)
