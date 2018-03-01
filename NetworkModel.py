@@ -52,7 +52,8 @@ class NetworkModel(nn.Module):
         if gnp.is_locked():
             return
 
-        weights_new = torch.nn.Parameter(torch.randn(gnp.size()))  # self.size
+        # weights_new = torch.nn.Parameter(torch.randn(gnp.size()))  # self.size
+        weights_new = torch.nn.Parameter(torch.Tensor(gnp.size()).fill_(0.0))  # self.size
         print('weights_new type:', type(weights_new))
         # weights_new.fill_(0.0)  ## TODO: need to randomly initialize
 
@@ -84,24 +85,33 @@ class NetworkModel(nn.Module):
         self.lock_it()
 
 
-        optimizer = torch.optim.SGD(self.parameters(), lr = 0.01)  # lr=0.8
-        #optimizer = torch.optim.LBFGS(self.parameters())  # lr=0.8
+        # optimizer = torch.optim.SGD(self.parameters(), lr = 0.01)  # lr=0.8
+        optimizer = torch.optim.LBFGS(self.parameters())  # lr=0.8
+        iter = 0
         for it in range(max_iterations):
 
-            optimizer.zero_grad()
+            def closure():
 
-            all_loss = 0  ### scalar
+                optimizer.zero_grad()
 
-            for i in range(len(self._all_instances)):
-                loss = self.forward(self.get_network(i))
-                all_loss -= loss
-                #loss.backward()
+                all_loss = 0  ### scalar
 
-            all_loss.backward()
-            print("Iteration ", it,": Obj=",  all_loss.data[0])
+                for i in range(len(self._all_instances)):
+                    loss = self.forward(self.get_network(i))
+                    all_loss -= loss
+                    #loss.backward()
+
+                all_loss.backward()
+                print("Iteration ", it,": Obj=",  all_loss.data[0])
+                # iter += 1
+
+                return all_loss
             #print('bWeight:', self.weights)
             # print("bGrad:", self.weights.grad)
-            optimizer.step()
+            optimizer.step(closure)
+
+            if iter > max_iterations:
+                break
             #print('aWeight:', self.weights)
             # print("aGrad:", self.weights.grad)
 

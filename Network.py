@@ -241,8 +241,7 @@ class Network:
                 #global_param_version = self.param.fm.get_param_g().get_version()
                 score = fa.get_score(self.param)
                 for child_k in children_k:
-                    if child_k < 0:
-                        score += self._max[child_k]
+                    score += self._max[child_k]
 
                 # print('maxk:',type(score), '\t', type(self._max[k]))
                 if score.data[0] >= self._max[k].data[0]:
