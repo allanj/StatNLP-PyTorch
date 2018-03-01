@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 
+
 class NetworkCompiler:
 
     def __init__(self):
