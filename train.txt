@@ -1,0 +1,3 @@
+far_from_town,delicious_food,crowded bad
+close_to_town,delicious_food,crowded good
+far_from_town,awful_food,quite good
