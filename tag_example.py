@@ -150,7 +150,7 @@ class TagNetworkCompiler(NetworkCompiler):
         prediction = [None for i in range(size)]
         for i in range(size):
             children = network.get_max_path(curr_idx)[0]
-            child = children[0]
+            child = children
             child_arr = network.get_node_array(child)
             prediction[size - i - 1] = self.labels[child_arr[1]]
             curr_idx = child
@@ -190,7 +190,7 @@ class TagFeatureManager(FeatureManager):
 
         child_label_id = str(child_arr[1])
 
-        fs.append(self._param_g.to_feature(network, "transision", label_id, child_label_id))
+        fs.append(self._param_g.to_feature(network, "transition", label_id, child_label_id))
 
         # print('parent_arr:', parent_arr)
         # print(fs)
@@ -227,7 +227,12 @@ class TagReader():
             else:
                 fields = line.split(' ')
                 input = fields[0]
-                output = fields[1]
+                output = fields[2]
+
+                if output.endswith("NP"):
+                    output = "NP"
+                else:
+                    output = "O"
 
                 if not output in TagReader.label2id_map:
                     output_id = len(TagReader.label2id_map)
@@ -247,7 +252,7 @@ if __name__ == "__main__":
     train_file = "sample_train.txt"
     test_file = "sample_test.txt"
 
-    train_insts = TagReader.read_insts(train_file, True, 1)
+    train_insts = TagReader.read_insts(train_file, True, 10)
 
     # print('Insts:')
     # print_insts(train_insts)
