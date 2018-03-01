@@ -45,7 +45,8 @@ class NetworkIDMapper:
             if isinstance(item, float):
                 raise Exception("find float")
 
-
+        # print('array:', array)
+        # print('NetworkIDMapper.CAPACITY:', NetworkIDMapper.CAPACITY)
         if len(array) != len(NetworkIDMapper.CAPACITY):
             raise Exception("array size is ", len(array))
 

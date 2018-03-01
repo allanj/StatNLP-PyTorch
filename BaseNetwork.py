@@ -101,7 +101,7 @@ class BaseNetwork(TableLookupNetwork):
             children_list = [None for i in range(len(node_list))]
 
             for parent in self._children_tmp:
-                print("builder parent: ", parent, " chidren_tmp: " , self._children_tmp[parent])
+                #print("builder parent: ", parent, " chidren_tmp: " , self._children_tmp[parent])
                 parent_index = nodes_value2id_map[parent]
                 childrens = self._children_tmp[parent]
                 if childrens == None:
@@ -121,7 +121,7 @@ class BaseNetwork(TableLookupNetwork):
                                 children_index.append(nodes_value2id_map[children[m]])
 
                         children_list[parent_index][k] = children_index
-                    print("parent is :", parent, " children_list, ", children_list[parent_index])
+                    #print("parent is :", parent, " children_list, ", children_list[parent_index])
             for k in range(len(children_list)):
                 if children_list[k] == None:
                     children_list[k] = [[]]

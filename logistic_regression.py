@@ -210,11 +210,11 @@ if __name__ == "__main__":
     model.train(train_insts, 500)
 
     test_file = "test.txt"
-    test_insts = LRReader.read_insts(test_file, False, -1)
+    test_insts = LRReader.read_insts(train_file, False, -1)
     results = model.test(test_insts)
 
     print()
     print('Result:')
     for i in range(len(test_insts)):
-        print("resulit is :", results[i].get_output())
+        print("resulit is :", results[i].get_prediction())
 
