@@ -8,6 +8,7 @@ from NetworkConfig import NetworkConfig
 from LocalNetworkParam import LocalNetworkParam
 import torch.optim
 from Utils import *
+import time
 
 
 
@@ -54,8 +55,8 @@ class NetworkModel(nn.Module):
         if gnp.is_locked():
             return
 
-        # weights_new = torch.nn.Parameter(torch.randn(gnp.size()))  # self.size
-        weights_new = torch.nn.Parameter(torch.Tensor(gnp.size()).fill_(0.0))  # self.size
+        weights_new = torch.nn.Parameter(torch.randn(gnp.size()))  # self.size
+        #weights_new = torch.nn.Parameter(torch.Tensor(gnp.size()).fill_(0.0))  # self.size
         print('weights_new type:', type(weights_new))
         # weights_new.fill_(0.0)  ## TODO: need to randomly initialize
 
@@ -66,13 +67,32 @@ class NetworkModel(nn.Module):
         gnp.locked = True
         eprint(gnp._size, " features")
 
+
+    def assign_fws(self, insts):
+        if self._networks == None:
+            self._networks = [None for i in range(len(insts))]
+
+        for network_id in range(len(insts)):
+            if network_id % 100 == 0:
+                eprint('.', end='')
+            network = self.get_network(network_id)
+
+            network.assign_fw()
+
+        eprint()
+
     def train(self, train_insts, max_iterations):
+
+        if NetworkConfig.GPU_ID >= 0:
+            torch.cuda.set_device(NetworkConfig.GPU_ID)
+
         insts_before_split = train_insts #self.prepare_instance_for_compilation(train_insts)
 
         insts = self.split_instances_for_train(insts_before_split)
 
         self._param = LocalNetworkParam(self, self._fm, len(insts))
         self._fm.set_local_param(self._param)
+        self._fm.enable_cache(len(insts))
 
         self._all_instances = insts
         if NetworkConfig.PRE_COMPILE_NETWORKS:
@@ -85,6 +105,7 @@ class NetworkModel(nn.Module):
 
         #self._fm.get_param_g().lock_it()
         self.lock_it()
+        self.assign_fws(insts)
 
 
         # optimizer = torch.optim.SGD(self.parameters(), lr = 0.01)  # lr=0.8
@@ -94,17 +115,30 @@ class NetworkModel(nn.Module):
 
             def closure():
 
+
                 optimizer.zero_grad()
 
                 all_loss = 0  ### scalar
 
+                start_time = time.time()
                 for i in range(len(self._all_instances)):
                     loss = self.forward(self.get_network(i))
                     all_loss -= loss
                     #loss.backward()
 
+
+                end_time = time.time()
+                diff_time = end_time - start_time
+                print('Forward:', '\tTime=',diff_time)
+
+
+                start_time = time.time()
                 all_loss.backward()
-                print("Iteration ", NetworkModel.Iter,": Obj=",  all_loss.data[0])
+                end_time = time.time()
+                diff_time = end_time - start_time
+                print('Backward:', '\tTime=', diff_time)
+
+                print("Iteration ", NetworkModel.Iter,": Obj=",  all_loss.data[0], '\tTime=',diff_time)
                 NetworkModel.Iter += 1
 
                 return all_loss

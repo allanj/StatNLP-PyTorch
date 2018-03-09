@@ -1,6 +1,7 @@
 import torch
 import torch.autograd as autograd
 import sys
+from NetworkConfig import  NetworkConfig
 
 def to_scalar(var):
     # returns a python float
@@ -18,6 +19,8 @@ def argmax(vec):
 def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
     tensor = torch.LongTensor(idxs)
+    if NetworkConfig.GPU_ID >= 0:
+        tensor = tensor.cuda()
     return autograd.Variable(tensor)
 
     # Compute log sum exp in a numerically stable way for the forward algorithm

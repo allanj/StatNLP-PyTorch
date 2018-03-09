@@ -8,6 +8,7 @@ class NetworkConfig:
     BUILD_FEATURES_FROM_LABELED_ONLY = False
     AVOID_DUPLICATE_FEATURES = False
     PRE_COMPILE_NETWORKS = False
+    GPU_ID = -1
 
 
 

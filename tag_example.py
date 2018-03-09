@@ -7,6 +7,7 @@ from Instance import Instance
 from FeatureManager import FeatureManager
 from FeatureArray import FeatureArray
 from NetworkModel import NetworkModel
+from NetworkConfig import NetworkConfig
 from enum import Enum
 import torch
 from Utils import *
@@ -222,7 +223,7 @@ class TagReader():
                 inputs = []
                 outputs = []
 
-                if len(insts) >= number:
+                if len(insts) >= number and number > 0:
                     break
 
             else:
@@ -253,7 +254,11 @@ if __name__ == "__main__":
     train_file = "sample_train.txt"
     test_file = "sample_test.txt"
 
-    train_insts = TagReader.read_insts(train_file, True, 10)
+
+
+    data_size = -1
+
+    train_insts = TagReader.read_insts(train_file, True, data_size)
 
     # print('Insts:')
     # print_insts(train_insts)
@@ -272,7 +277,7 @@ if __name__ == "__main__":
     model = NetworkModel(fm, compiler)
     model.train(train_insts, 20)
 
-    test_insts = TagReader.read_insts(test_file, False, 10)
+    test_insts = TagReader.read_insts(test_file, False, data_size)
     results = model.test(test_insts)
 
     print()

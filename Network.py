@@ -28,14 +28,19 @@ class Network:
 
     def getInsideSharedArray(self):
         if self.inside_shared_array == None or self.count_nodes() > len(self.inside_shared_array):
-            self.inside_shared_array = autograd.Variable(
-                torch.Tensor(self.count_nodes()).fill_(0.0))  ##np.zeros(self.count_nodes(), dtype=np.float)
+            if NetworkConfig.GPU_ID >= 0:
+                self.inside_shared_array = autograd.Variable(
+                    torch.Tensor(self.count_nodes()).fill_(0.0).cuda())  ##np.zeros(self.count_nodes(), dtype=np.float)
+            else:
+                self.inside_shared_array = autograd.Variable(
+                    torch.Tensor(self.count_nodes()).fill_(0.0))  ##np.zeros(self.count_nodes(), dtype=np.float)
+
 
 
         return self.inside_shared_array
 
     def inside(self):
-        self.inside_scores = autograd.Variable(torch.Tensor(self.count_nodes()).fill_(0.0))
+        self.inside_scores = autograd.Variable(torch.Tensor(self.count_nodes()).fill_(0.0).cuda() if NetworkConfig.GPU_ID >= 0 else torch.Tensor(self.count_nodes()).fill_(0.0))
         for k in range(self.count_nodes()):
             self.get_inside(k)
         if math.isinf(self.get_insides().data[0]) and self.get_insides() > 0:
@@ -70,7 +75,7 @@ class Network:
 
         # print('children_list_k:', children_list_k, ' k:', k, 'len(children_list_k):', len(children_list_k))
 
-        scores = autograd.Variable(torch.Tensor(len(children_list_k)))
+        scores = autograd.Variable(torch.Tensor(len(children_list_k)).cuda() if NetworkConfig.GPU_ID >= 0 else torch.Tensor(len(children_list_k)))
         for children_k_index in range(len(children_list_k)):
             children_k = children_list_k[children_k_index]
             ignore_flag = False
@@ -119,6 +124,24 @@ class Network:
             children_k = children_lisk_k[children_k_index]
             self.param.extract(self, k, children_k, children_k_index)
 
+    def assign_fw(self):
+        for k in range(self.count_nodes()):
+            self.assign_edge_fw(k)
+
+    def assign_edge_fw(self, k):
+        if self.is_removed(k):
+            return
+        children_lisk_k = self.get_children(k)
+        for children_k_index in range(len(children_lisk_k)):
+            children_k = children_lisk_k[children_k_index]
+            fa = self.param.extract(self, k, children_k, children_k_index)
+
+            fs = fa.get_current()
+            fa.fw = [self.param.get_weight(i) for i in fs]
+            # fa.fw = []
+            # for i in fs:
+            #     fa.fw.append(self.param.get_weight(i))
+
 
 
 
@@ -151,8 +174,7 @@ class Network:
 
 
         if self.maxSharedArray == None or self.count_nodes() > len(self.maxSharedArray):
-            self.maxSharedArray = autograd.Variable(
-                torch.Tensor(self.count_nodes()).fill_(0.0))  ##np.zeros(self.count_nodes(), dtype=np.float)
+            self.maxSharedArray = autograd.Variable(torch.Tensor(self.count_nodes()).fill_(0.0).cuda() if NetworkConfig.GPU_ID >= 0 else torch.Tensor(self.count_nodes()).fill_(0.0))  ##np.zeros(self.count_nodes(), dtype=np.float)
         return self.maxSharedArray
 
 

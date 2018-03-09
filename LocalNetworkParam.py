@@ -47,6 +47,7 @@ class LocalNetworkParam:
         return self.obj
 
 
+
     def get_weight(self, feature_id):
         # if self.is_global_mode():
         #     return self.fm.get_param_g.get_weight(feature_id)

@@ -103,7 +103,7 @@ class FeatureArray:
 
         self._total_score = 0.0
         #if self._fb._version != version:
-        self._fb._curr_score = self.compute_score(param, self.get_current())
+        self._fb._curr_score =   sum(self.fw) #self.compute_score(param, self.get_current()) #
         self._fb._version = version
 
         self._total_score += self._fb._curr_score
@@ -118,12 +118,13 @@ class FeatureArray:
         if (not self._is_local) != param.is_global_mode():
             raise Exception('This FeatureArray is local? ', self._is_local, '; The param is ', param.is_global_mode())
 
-        score = autograd.Variable(torch.Tensor(1).fill_(0.0))
+        score = autograd.Variable(torch.Tensor(1).fill_(0.0).cuda() if NetworkConfig.GPU_ID >= 0 else torch.Tensor(1).fill_(0.0))
         for i in range(len(fs)):
             f = fs[i]
-            #fv = 1 if fvs != None else fvs[i]  ## TODO: use m.index_select(dim, torch.LongTensor(list))
+            #fv = 1 if fvs != None else fvs[i]  ## TODO: use m.index_select(0, fs)
             if f != -1:
                 score += param.get_weight(f)
+
 
         return score
 
